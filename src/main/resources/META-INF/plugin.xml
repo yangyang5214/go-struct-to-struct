@@ -31,9 +31,9 @@
     <actions>
         <action id="com.yangyang5214.teemo.actions.TransformAction"
                 class="com.yangyang5214.teemo.actions.TransformAction"
-                text="StructToStruct"
+                text="Struct To Struct"
                 description="Transform struct action">
-            <add-to-group group-id="GenerateGroup" anchor="first"/>
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
