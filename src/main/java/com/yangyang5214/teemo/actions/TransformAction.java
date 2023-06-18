@@ -17,6 +17,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -36,101 +37,68 @@ public class TransformAction extends AnAction {
 
         Document doc = editor.getDocument();
 
-        int line = doc.getLineNumber(getCurrentOffset(editor));
+        int offset = getCurrentOffset(editor);
+
+        int line = doc.getLineNumber(offset);
         TextRange textRange = new TextRange(doc.getLineStartOffset(line), doc.getLineEndOffset(line));
         String currentLineText = doc.getText(textRange);
-
-        int startOffset = doc.getLineStartOffset(line);
-
-        List<Integer> indexList = new ArrayList<>();
-        for (int i = 1; i < currentLineText.length() - 1; i++) {
-            if (currentLineText.charAt(i) == ')') {
-                indexList.add(startOffset + i - 1);
-            }
-
-        }
-        if (indexList.size() != 2) {
-            return;
-        }
 
         GoFile psiFile = (GoFile) e.getDataContext().getData(CommonDataKeys.PSI_FILE);
         if (psiFile == null) {
             return;
         }
 
-        for (Integer index : indexList) {
-            PsiElement psiElement = psiFile.findElementAt(index);
-            if (psiElement == null) {
-                alterMsg("can't find  struct");
-                return;
-            }
+        PsiElement psiElement = PsiUtilCore.getElementAtOffset(psiFile, offset);
 
-            alterMsg(psiElement.getText());
-
-            GoTypeDeclaration declaration = PsiTreeUtil.getContextOfType(psiElement, GoTypeDeclaration.class);
-            if (declaration == null) {
-                alterMsg("can't find  struct declaration");
-                return;
-            }
-            GoTypeSpec goTypeSpec = PsiTreeUtil.getChildOfType(declaration, GoTypeSpec.class);
-            if (goTypeSpec == null) {
-                alterMsg("can't find  struct Spec");
-                return;
-            }
-
-            GoStructType structType = PsiTreeUtil.getParentOfType(goTypeSpec, GoStructType.class);
-            if (structType == null) {
-                alterMsg("can't find  struct Type");
-                return;
-            }
-
-            alterMsg(structType.toString());
-
-            List<GoFieldDeclaration> fieldDeclarations = structType.getFieldDeclarationList();
-            for (GoFieldDeclaration fieldDeclaration : fieldDeclarations) {
-                List<GoFieldDefinition> fieldDefinitions = fieldDeclaration.getFieldDefinitionList();
-                for (GoFieldDefinition fieldDefinition : fieldDefinitions) {
-                    String attributeName = fieldDefinition.getName();
-                    alterMsg(attributeName);
-                }
-            }
+        GoFunctionDeclaration func = PsiTreeUtil.getParentOfType(psiElement, GoFunctionDeclaration.class);
+        if (func == null) {
+            alterMsg("No func found");
+            return;
         }
+
+        GoSignature signature = func.getSignature();
+        if (signature == null) {
+            return;
+        }
+
+        GoType paramType = getParam(signature);
+        if (paramType == null) {
+            alterMsg("param type is missing");
+            return;
+        }
+
+        GoType returnType = getReturn(signature);
+        if (returnType == null) {
+            alterMsg("return type is missing");
+            return;
+        }
+
+        String result = genResult();
+        alterMsg(result);
     }
 
 
-//        if (psiMethod == null) {
-//            return;
-//        }
-//
-//        PsiParameterList parameterList = psiMethod.getParameterList();
-//        PsiParameter[] parameters = parameterList.getParameters();
-//        if (parameters.length == 0) {
-//            return;
-//        }
-//
-//        PsiType parameterType = parameters[0].getType();
-//        if (!(parameterType instanceof PsiClassType)) {
-//            return;
-//        }
-//
-//        PsiClassType classType = (PsiClassType) parameterType;
-//        PsiClass parameterClass = classType.resolve();
-//        if (parameterClass == null || !parameterClass.isRecord()) {
-//            return;
-//        }
-//
-//        String parameterClassName = parameterClass.getName();
-//
-//        // Generate the return struct code
-//        StringBuilder structCode = new StringBuilder("type ReturnValue struct {\n");
-//        structCode.append("\t").append(parameterClassName).append("\n");
-//        structCode.append("}");
-//
-//
-//        String result = structCode.toString();
-//        doc.insertString(offset, result);
-//
-//        alterMsg(project, "111");
+    public GoType getParam(GoSignature signature) {
+        GoParameters parameters = signature.getParameters();
+        if (parameters.getParameterDeclarationList().size() != 1) {
+            alterMsg("params length is not equals 1");
+            return null;
+        }
+        GoParameterDeclaration parameter = parameters.getParameterDeclarationList().get(0);
+        return parameter.getType();
+    }
+
+    public GoType getReturn(GoSignature signature) {
+        GoResult result = signature.getResult();
+        if (result == null) {
+            return null;
+        }
+        GoType returnType = result.getType(); //single return
+        if (result.getParameters() != null) {
+            returnType = result.getParameters().getTypeByIndex(0); // multi return .  use first
+        }
+        return returnType;
+    }
 
 
     public void alterMsg(String msg) {
@@ -139,7 +107,6 @@ public class TransformAction extends AnAction {
 
 
     public String genResult() {
-        //todo
         return "";
     }
 
@@ -154,24 +121,5 @@ public class TransformAction extends AnAction {
         CaretModel caretModel = editor.getCaretModel();
         Caret primaryCaret = caretModel.getPrimaryCaret();
         return primaryCaret.getOffset();
-    }
-
-    private List<String> getStructProperties(GoType goType) {
-        List<String> properties = new ArrayList<>();
-
-        if (goType instanceof GoPointerType pointerType) {
-            goType = pointerType.getType();
-        }
-
-        if (goType instanceof GoStructType structType) {
-            List<GoFieldDeclaration> fields = structType.getFieldDeclarationList();
-            for (GoFieldDeclaration field : fields) {
-                List<GoFieldDefinition> fieldDefinitions = field.getFieldDefinitionList();
-                for (GoFieldDefinition fieldDefinition : fieldDefinitions) {
-                    properties.add(fieldDefinition.getName());
-                }
-            }
-        }
-        return properties;
     }
 }
