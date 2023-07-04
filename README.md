@@ -12,10 +12,9 @@ func transform(d *data.SiteResult) *site.SiteResult {
 }
 ```
 
-- use right click(or command + N)
+- Use right click -> Generate (or shortcut key 【Command + N】 for Mac)
 
 ![](images/demo-1.png)
-
 
 - then. gen code
 
