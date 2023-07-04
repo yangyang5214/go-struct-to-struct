@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.13.3"
+    id("org.jetbrains.intellij") version "1.14.1"
 }
 
 group = "com.yangyang5214"
@@ -17,10 +17,12 @@ java {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2022.2.5")
-    type.set("IC") // Target IDE Platform
-//    type.set("IU") // Target IDE Platform
-//    type.set("GO") // Target IDE Platform
+    type.set("GO")
+//    version.set("2022.2.5")
+//    localPath.set("/Users/beer./Library/Application Support/JetBrains/Toolbox/apps/Goland/ch-0/222.4345.24/GoLand.app/Contents")
+    localPath.set("/Users/beer/Library/Application Support/JetBrains/Toolbox/apps/Goland/ch-0/231.9011.34/GoLand.app/Contents")
+    // https://plugins.jetbrains.com/docs/intellij/goland.html#plugin-and-module-dependencies
+    plugins.set(listOf("org.jetbrains.plugins.go"))
 }
 
 tasks {

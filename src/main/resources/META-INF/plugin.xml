@@ -21,6 +21,8 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.goland</depends>>
+    <depends>org.jetbrains.plugins.go</depends>>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -30,9 +32,10 @@
 
     <actions>
         <action id="com.yangyang5214.teemo.actions.TransformAction"
-                class="com.yangyang5214.teemo.actions.TransformAction" text="TransformAction"
-                description="TransformAction">
-            <add-to-group group-id="GenerateGroup" anchor="first"/>
+                class="com.yangyang5214.teemo.actions.TransformAction"
+                text="Struct To Struct"
+                description="Transform struct action">
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
