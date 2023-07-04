@@ -1,21 +1,20 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>com.yangyang5214.teemo</id>
+    <id>com.yangyang5214.sts</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Teemo</name>
+    <name>Struct-to-Struct</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor>Beer</vendor>
+    <vendor email="beer5214@126.com">beer</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-     Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.<br>
-    <em> - golang struct to struct </em>
+     Automatically generate two struct transformations through function declarations.<br>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -31,8 +30,8 @@
     </extensions>
 
     <actions>
-        <action id="com.yangyang5214.teemo.actions.TransformAction"
-                class="com.yangyang5214.teemo.actions.TransformAction"
+        <action id="com.yangyang5214.sts.actions.TransformAction"
+                class="com.yangyang5214.sts.actions.TransformAction"
                 text="Struct To Struct"
                 description="Transform struct action">
             <add-to-group group-id="GenerateGroup" anchor="last"/>

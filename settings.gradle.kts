@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "teemo"
+rootProject.name = "sts"
