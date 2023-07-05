@@ -41,3 +41,12 @@ func transform(d *data.SiteResult) *site.SiteResult {
 	}
 }
 ```
+
+
+
+### Reference
+
+
+https://stackoverflow.com/questions/28294413/how-to-programmatically-use-intellij-idea-code-formatter
+
+https://stackoverflow.com/questions/76561470/how-to-get-gostructtype-object-by-gofunctiondeclaration-idea-plugin-for-goland/76574114#76574114
