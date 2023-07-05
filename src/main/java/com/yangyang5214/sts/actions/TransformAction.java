@@ -1,11 +1,11 @@
 package com.yangyang5214.sts.actions;
 
-import Y.O.t.S;
 import com.goide.psi.*;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.CaretModel;
@@ -16,6 +16,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.Strings;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +95,21 @@ public class TransformAction extends AnAction {
                 doc.insertString(doc.getLineStartOffset(insertLine), result);
             }
         });
+
+        autoFormat(e);
+    }
+
+
+    /**
+     * https://stackoverflow.com/questions/28294413/how-to-programmatically-use-intellij-idea-code-formatter
+     */
+    public void autoFormat(@NotNull AnActionEvent e) {
+        CodeStyleManager styleManager = CodeStyleManager.getInstance(project);
+        PsiElement psiFile = e.getData(LangDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            return;
+        }
+        styleManager.reformat(psiFile);
     }
 
 
