@@ -20,7 +20,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.yangyang5214.sts.model.Field;
-import org.eclipse.sisu.space.SpaceScanner;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -98,19 +97,15 @@ public class TransformAction extends AnAction {
             }
         });
 
-        autoFormat(e);
+        autoFormat(psiFile);
     }
 
 
     /**
      * https://stackoverflow.com/questions/28294413/how-to-programmatically-use-intellij-idea-code-formatter
      */
-    public void autoFormat(@NotNull AnActionEvent e) {
+    public void autoFormat(GoFile psiFile) {
         CodeStyleManager styleManager = CodeStyleManager.getInstance(project);
-        PsiElement psiFile = e.getData(LangDataKeys.PSI_FILE);
-        if (psiFile == null) {
-            return;
-        }
         styleManager.reformat(psiFile);
     }
 
