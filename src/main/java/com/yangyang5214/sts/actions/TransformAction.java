@@ -19,6 +19,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
+import com.yangyang5214.sts.model.Field;
+import org.eclipse.sisu.space.SpaceScanner;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -190,14 +192,19 @@ public class TransformAction extends AnAction {
         builder.append(wrapString("return &", 1)).append(getReturnType(signature)).append("{");
         builder.append(wrapString("\n", 2));
 
-        List<String> returnFields = getAllField(returnType);
-        List<String> paramFields = getAllField(paramType);
+        List<Field> returnFields = getAllField(returnType);
+        List<Field> paramFields = getAllField(paramType);
 
         Map<String, String> fieldMap = genMap(paramFields, returnFields);
 
         String paramVal = getParamVarName(signature);
-        for (String returnField : returnFields) {
+
+        List<Field> notMatchs = new ArrayList<>();
+
+        for (Field f : returnFields) {
+            String returnField = f.getName();
             if (!fieldMap.containsKey(returnField)) {
+                notMatchs.add(f);
                 continue;
             }
             builder.append(wrapString(returnField, 2));
@@ -207,16 +214,36 @@ public class TransformAction extends AnAction {
             builder.append(paramVal);
             builder.append(".");
             builder.append(fieldMap.get(returnField));
-
             builder.append(wrapString(",", 0));
+            builder.append(wrapString("\n", 2));
+        }
 
+        //set default values
+        for (Field f : notMatchs) {
+            builder.append(wrapString(f.getName(), 2));
+            builder.append(wrapString(":", 0));
+            // default value
 
+            builder.append(wrapString(genDefaultVal(f.getType()), 0));
+            builder.append(wrapString(",", 0));
             builder.append(wrapString("\n", 2));
         }
 
         //for last line
         builder.append(wrapString("}", 1));
         return builder.toString();
+    }
+
+
+    public String genDefaultVal(String type) {
+        if (type.startsWith("int")) {
+            return "0";
+        } else if (type.equals("string")) {
+            return "\"\"";
+        } else if (type.equals("bool")) {
+            return "false";
+        }
+        return "nil";
     }
 
     /**
@@ -227,9 +254,10 @@ public class TransformAction extends AnAction {
      * @param returnFields
      * @return
      */
-    public Map<String, String> genMap(List<String> paramFields, List<String> returnFields) {
+    public Map<String, String> genMap(List<Field> paramFields, List<Field> returnFields) {
         Map<String, String> resultMap = new HashMap<>();
-        for (String paramField : paramFields) {
+        for (Field f : paramFields) {
+            String paramField = f.getName();
             String matchingReturnField = findMatchingReturnField(paramField, returnFields);
             if (matchingReturnField != null) {
                 resultMap.put(paramField, matchingReturnField);
@@ -243,8 +271,9 @@ public class TransformAction extends AnAction {
         return str;
     }
 
-    private String findMatchingReturnField(String paramField, List<String> returnFields) {
-        for (String returnField : returnFields) {
+    private String findMatchingReturnField(String paramField, List<Field> returnFields) {
+        for (Field f : returnFields) {
+            String returnField = f.getName();
             if (trim(paramField).equalsIgnoreCase(trim(returnField))) {
                 return returnField;
             }
@@ -253,8 +282,8 @@ public class TransformAction extends AnAction {
     }
 
 
-    public List<String> getAllField(GoStructType structType) {
-        List<String> fieldList = new ArrayList<>();
+    public List<Field> getAllField(GoStructType structType) {
+        List<Field> fieldList = new ArrayList<>();
         List<GoFieldDeclaration> fieldDeclarations = structType.getFieldDeclarationList();
         for (int i = 0; i < fieldDeclarations.size(); i++) {
             GoFieldDeclaration declaration = fieldDeclarations.get(i);
@@ -270,7 +299,7 @@ public class TransformAction extends AnAction {
                 continue; //  skip extends struct
             }
 
-            fieldList.add(arrs[0]);
+            fieldList.add(new Field(arrs[0], arrs[1]));
         }
         return fieldList;
     }
