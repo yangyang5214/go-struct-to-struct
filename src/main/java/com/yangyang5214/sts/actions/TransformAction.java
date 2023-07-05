@@ -200,7 +200,6 @@ public class TransformAction extends AnAction {
 
         //for last line
         builder.append(wrapString("}", 1));
-        builder.append(wrapString("\n", 1));
         return builder.toString();
     }
 
