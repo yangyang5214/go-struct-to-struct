@@ -10,6 +10,12 @@ IntelliJ plugin that Automatically generate two struct transformations through f
 func transform(d *data.SiteResult) *site.SiteResult {
 
 }
+
+or 
+
+func (s *SiteInfo) transform() *SiteResult {
+
+}
 ```
 
 - Use right click -> Generate (or shortcut key 【Command + N】 for Mac)
