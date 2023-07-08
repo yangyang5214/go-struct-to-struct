@@ -1,11 +1,12 @@
 package com.yangyang5214.sts.actions;
 
 import com.goide.psi.*;
+import com.goide.psi.impl.GoFunctionDeclarationImpl;
+import com.goide.psi.impl.GoMethodDeclarationImpl;
 import com.goide.psi.impl.GoTypeUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.CaretModel;
@@ -22,10 +23,7 @@ import com.intellij.psi.util.PsiUtilCore;
 import com.yangyang5214.sts.model.Field;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransformAction extends AnAction {
 
@@ -54,7 +52,7 @@ public class TransformAction extends AnAction {
 
         PsiElement psiElement = PsiUtilCore.getElementAtOffset(psiFile, offset);
 
-        GoFunctionDeclaration func = PsiTreeUtil.getParentOfType(psiElement, GoFunctionDeclaration.class);
+        GoFunctionOrMethodDeclaration func = PsiTreeUtil.getParentOfType(psiElement, GoFunctionOrMethodDeclaration.class);
         if (func == null) {
             alterMsg("No func found");
             return;
@@ -65,15 +63,14 @@ public class TransformAction extends AnAction {
             return;
         }
 
-        if (getParamVarName(signature) == null) {
-            alterMsg("Need declare param var. \n\n Example: func test(certInfo *CertInfo) (output *SiteInfo)");
-            return;
-        }
-
-        GoStructType paramType = getParam(signature);
+        GoStructType paramType = getParam(func);
         if (paramType == null) {
             alterMsg("param type is not a pointer type");
             return;
+        }
+
+        if (getParamVarName(func) == null) {
+            alterMsg("get param val name failed");
         }
 
 
@@ -83,7 +80,7 @@ public class TransformAction extends AnAction {
             return;
         }
 
-        String result = genResult(signature, paramType, returnType);
+        String result = genResult(func, paramType, returnType);
 
 //        alterMsg(result); // alert debug
         WriteCommandAction.runWriteCommandAction(project, new Runnable() {
@@ -100,7 +97,6 @@ public class TransformAction extends AnAction {
         autoFormat(psiFile);
     }
 
-
     /**
      * https://stackoverflow.com/questions/28294413/how-to-programmatically-use-intellij-idea-code-formatter
      */
@@ -113,16 +109,30 @@ public class TransformAction extends AnAction {
     /**
      * Reference: <a href="https://stackoverflow.com/questions/76561470/how-to-get-gostructtype-object-by-gofunctiondeclaration-idea-plugin-for-goland">...</a>
      */
-    public GoStructType getParam(GoSignature signature) {
-        for (GoParamDefinition paramDef : signature.getParameters().getDefinitionList()) {
-            GoType paramType = paramDef.getGoType(null);
-            GoTypeSpec goTypeSpec = GoTypeUtil.findTypeSpec(paramType, signature, true);
-            if (goTypeSpec == null) {
+    public GoStructType getParam(GoFunctionOrMethodDeclaration func) {
+        GoType goType;
+        GoTypeSpec goTypeSpec = null;
+        if (func instanceof GoMethodDeclarationImpl) {
+            GoReceiver receiver = ((GoMethodDeclarationImpl) func).getReceiver();
+            if (receiver == null) {
                 return null;
             }
-            return (GoStructType) goTypeSpec.getSpecType().getType();
+            goType = receiver.getType();
+            goTypeSpec = GoTypeUtil.findTypeSpec(goType, receiver, true);
+        } else if (func instanceof GoFunctionDeclarationImpl) {
+            GoSignature signature = func.getSignature();
+            if (signature == null) {
+                return null;
+            }
+            for (GoParamDefinition paramDef : signature.getParameters().getDefinitionList()) {
+                goType = paramDef.getGoType(null);
+                goTypeSpec = GoTypeUtil.findTypeSpec(goType, signature, true);
+            }
         }
-        return null;
+        if (goTypeSpec == null) {
+            return null;
+        }
+        return (GoStructType) goTypeSpec.getSpecType().getType();
     }
 
     public GoStructType getReturn(GoSignature signature) {
@@ -168,19 +178,37 @@ public class TransformAction extends AnAction {
      * //need certInfo var name
      * }
      *
-     * @param signature
-     * @return certInfo
+     * @param func
+     * @return string
      */
-    public String getParamVarName(GoSignature signature) {
-        String text = signature.getParameters().getParameterDeclarationList().get(0).getText();
-        String[] arrs = text.split(" ");
-        if (arrs.length == 1) {
-            return null;
+    public String getParamVarName(GoFunctionOrMethodDeclaration func) {
+        if (func instanceof GoFunctionDeclarationImpl) {
+            GoSignature signature = func.getSignature();
+            if (signature == null) {
+                return null;
+            }
+            String text = signature.getParameters().getParameterDeclarationList().get(0).getText();
+            String[] arrs = text.split(" ");
+            if (arrs.length == 1) {
+                return null;
+            }
+            return arrs[0];
+        } else if (func instanceof GoMethodDeclarationImpl) {
+            GoReceiver receiver = ((GoMethodDeclarationImpl) func).getReceiver();
+            if (receiver == null) {
+                return null;
+            }
+            PsiElement identifier = receiver.getIdentifier();
+            if (identifier == null) {
+                return null;
+            }
+            return identifier.getText();
         }
-        return arrs[0];
+        return null;
     }
 
-    public String genResult(GoSignature signature, GoStructType paramType, GoStructType returnType) {
+    public String genResult(GoFunctionOrMethodDeclaration func, GoStructType paramType, GoStructType returnType) {
+        GoSignature signature = func.getSignature();
         StringBuilder builder = new StringBuilder();
 
         //for return
@@ -192,7 +220,7 @@ public class TransformAction extends AnAction {
 
         Map<String, String> fieldMap = genMap(paramFields, returnFields);
 
-        String paramVal = getParamVarName(signature);
+        String paramVal = getParamVarName(func);
 
         List<Field> notMatchs = new ArrayList<>();
 
