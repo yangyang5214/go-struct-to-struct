@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.yangyang5214"
-version = "0.0.6"
+version = "0.0.7"
 
 repositories {
     mavenCentral()
@@ -37,6 +37,6 @@ tasks {
     patchPluginXml {
         sinceBuild.set("222")
         // https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html#platformVersions
-        untilBuild.set("233.*")
+        untilBuild.set("241.*")
     }
 }
