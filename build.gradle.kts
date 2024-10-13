@@ -1,42 +1,36 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
 }
 
-group = "com.yangyang5214"
-version = "0.0.7"
+group = providers.gradleProperty("pluginGroup").get()
+version = providers.gradleProperty("pluginVersion").get()
+
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
+
+//https://plugins.jetbrains.com/docs/intellij/goland.html#pluginxml
+dependencies {
+    intellijPlatform {
+//        goland("2024.2.3")
+        local("/Users/beer/Applications/GoLand.app/Contents")
+
+        bundledPlugin("org.jetbrains.plugins.go")
+        zipSigner()
+        instrumentationTools()
+    }
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    type.set("GO")
-//    version.set("2022.2.5")
 
-    // local develop idea location
-//    localPath.set("/Users/beer./Library/Application Support/JetBrains/Toolbox/apps/Goland/ch-0/222.4345.24/GoLand.app/Contents")
-    localPath.set("/Users/beer/Library/Application Support/JetBrains/Toolbox/apps/Goland/ch-0/233.13135.104/GoLand.app/Contents")
-
-    // https://plugins.jetbrains.com/docs/intellij/goland.html#plugin-and-module-dependencies
-    plugins.set(listOf("org.jetbrains.plugins.go"))
-}
 
 tasks {
-
-    buildSearchableOptions {
-        enabled = false
-    }
-
     patchPluginXml {
         sinceBuild.set("222")
-        // https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html#platformVersions
-        untilBuild.set("241.*")
     }
 }
