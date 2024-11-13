@@ -19,7 +19,7 @@ repositories {
 dependencies {
     intellijPlatform {
 //        goland("2024.2.3")
-        local("/Users/beer/Applications/GoLand.app/Contents")
+        local("/Users/beer/Applications/GoLand.app")
 
         bundledPlugin("org.jetbrains.plugins.go")
         zipSigner()
@@ -32,5 +32,6 @@ dependencies {
 tasks {
     patchPluginXml {
         sinceBuild.set("222")
+        untilBuild = provider { null }
     }
 }

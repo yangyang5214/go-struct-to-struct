@@ -48,6 +48,11 @@ func transform(d *data.SiteResult) *site.SiteResult {
 }
 ```
 
+### build
+
+```
+gradle build
+```
 
 
 ### Reference
