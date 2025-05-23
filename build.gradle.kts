@@ -7,6 +7,12 @@ group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 repositories {
     mavenCentral()
     intellijPlatform {
@@ -18,8 +24,8 @@ repositories {
 //https://plugins.jetbrains.com/docs/intellij/goland.html#pluginxml
 dependencies {
     intellijPlatform {
-//        goland("2024.2.3")
-        local("/Users/beer/Applications/GoLand.app")
+       goland("2025.1.1")
+       // local("/Users/beer/Applications/GoLand.app")
 
         bundledPlugin("org.jetbrains.plugins.go")
         zipSigner()
